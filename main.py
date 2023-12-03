@@ -21,7 +21,6 @@ import streamlit as st
 def extract_data_from_gs(filename, service_account_file, scopes):
 
     try:
-
         # Loads service account credentials
         creds = service_account.Credentials.from_service_account_file(service_account_file, scopes=scopes)
 
@@ -55,7 +54,13 @@ def extract_data_from_gs(filename, service_account_file, scopes):
 
 def chatgpt_query(prompt, header):
     # What is sent onto the AI model as a request
-    initial_prompt = 'I am going to pass a query in order to find all employees who meet certain requirements inside of a pandas dataframe. Translate those requirements in terms of the header which is ' + header + ' \n\nGive the commands in relationship with the structure of the given header. The answer needs to follow the following df queries in the next examples:\nExample1\nQuery: I want all employees whos name is Jon and live in Spain\n\ndf.loc[(df["Name"] == "Jon") & (df["Country"] == "Spain")]\n\nExample 2\nQuery: I want all employees that live in the UK and are Data scientists\ndf.loc[(df["Country"] == "UK") & (df["Occupation"] == "Data scientist")]\n\nYour answer must be precise and short, no explanation JUST the code. Write it in plane text so it is easier to read. You are only allowed to use one single line of code. You get bonus points for shorter answer and for the least amount of code lines. You are NOT allowed to write 2 lines of code or you will lose points. If you give the answer in 2 separate lines of code, you will be deducted points from the total score'
+    initial_prompt = (('I am going to pass a query in order to find all employees who meet certain requirements inside '
+                      'of a pandas dataframe. Translate those requirements in terms of the header which is ') + header
+                      + ' \n\nGive the commands in relationship with the structure of the given header. ' +
+                        'The answer needs to follow the following df queries in the next examples:\nExample1\nQuery:' +
+                      'I want all employees whos name is Jon and live in Spain\n\ndf.loc[(df["Name"] == "Jon")' +
+                      ' & (df["Country"] == "Spain")]\n\nExample 2\nQuery:' +
+                      ' I want all employees that live in the UK and are Data scientists\ndf.loc[(df["Country"] == "UK") & (df["Occupation"] == "Data scientist")]\n\nYour answer must be precise and short, no explanation JUST the code. Write it in plane text so it is easier to read. You are only allowed to use one single line of code. You get bonus points for shorter answer and for the least amount of code lines. You are NOT allowed to write 2 lines of code or you will lose points. If you give the answer in 2 separate lines of code, you will be deducted points from the total score')
     full_prompt = initial_prompt + '\nNow my query is:\n' + prompt + '\n Only provide your answer with the code'
 
     # Tuning of the AI model parameters allowing to further customize the response
@@ -67,8 +72,6 @@ def chatgpt_query(prompt, header):
 
     if not api_key:
         raise ValueError("API key is not present in the JSON file.")
-
-    key = "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"
 
     client = OpenAI(api_key=api_key)
 
@@ -86,8 +89,8 @@ def chatgpt_query(prompt, header):
     return pandas_df
 
 
-def is_email(input):  # Checks if input is an email
-    return '@' in input and '.' in input
+def is_email(email_address):
+    return '@' in email_address and '.' in email_address
 
 
 def share_slide_copies(dataframe, share_email):
@@ -114,7 +117,7 @@ def share_slide_copies(dataframe, share_email):
                       'https://www.googleapis.com/auth/drive.file',
                       'https://www.googleapis.com/auth/presentations']
 
-            source_slide_id = '190x1G-7DH6zaWEJjTI49sdoJ9ZVr_tyxW05QB_2W-SY'  # ID of the Google Slides template
+            source_slide_id = '190x1G-7DH6zaWEJjTI49sdoJ9ZVr_tyxW05QB_2W-SY'  #   ID of the Google Slides template
 
             # Build the credentials and Sheets service
             credentials = service_account.Credentials.from_service_account_file(credentials_path, scopes=scopes)
@@ -141,8 +144,10 @@ def share_slide_copies(dataframe, share_email):
 
             for placeholder, info in zip(placeholders_list, list_of_info):
                 # Replaces placeholders info with employee info
-                requests.append({"replaceAllText": {"containsText": {"text": placeholder, "matchCase": False}, "replaceText": info}})
-                slides_service.presentations().batchUpdate(presentationId=copies[i], body={'requests': requests}).execute()
+                requests.append({"replaceAllText": {"containsText": {"text": placeholder,
+                                                                     "matchCase": False}, "replaceText": info}})
+                slides_service.presentations().batchUpdate(presentationId=copies[i],
+                                                           body={'requests': requests}).execute()
 
             # Share the copied Google Sheets files with the specified email
             drive_service.permissions().create(
@@ -199,7 +204,8 @@ def main():
                     st.dataframe(filtered_df)
                     st.divider()
                     st.write("Do you wish to create a Google Slides file for each employee info")
-                    share_email = st.text_input("Type in the email address to share the Google Slides with and click SHARE")
+                    share_email = st.text_input(f"Type in the email address to share the Google Slides "
+                                                f"with and click SHARE")
 
                     if st.button("SHARE"):
                         share_slide_copies(filtered_df, share_email)
@@ -209,7 +215,8 @@ def main():
                 st.write("Not sure what to write? Try one of these:")
                 st.markdown("* Example 1: I want to find all employees older than 30 that live in Spain or the UK")
                 st.markdown("* Example 2: Give me all employees that are a Data Analyst and live in Switzerland ")
-                st.markdown("* Example 3: I want to know which cars were fabricated between 1999 and 2008 and also run on diesel")
+                st.markdown(f"* Example 3: I want to know which cars were fabricated "
+                            f"between 1999 and 2008 and also run on diesel")
 
                 # Perform some AI operation on the data
                 if filter_ai:
@@ -217,7 +224,6 @@ def main():
 
                     # Check if the loaded file has the employee structure by comparing the df header
                     employee_header = str(['ID', 'Name', 'Occupation', 'Country', 'Age'])
-                    print(header)
 
                     if header == employee_header:
                         try:
@@ -226,18 +232,21 @@ def main():
                             st.dataframe(filtered_df)
                             st.divider()
                             st.write("Do you want to create a Google Slides file for each employee info?")
-                            share_email = st.text_input("Type in the email address to share the Google Slides with and click SHARE")
+                            share_email = st.text_input(f"Type in the email address to share the Google Slides "
+                                                        f"with and click SHARE")
 
                             if st.button('SHARE'):
                                 share_slide_copies(filtered_df, share_email)
 
                         except SyntaxError:
-                            st.write('Apologies, I am an Artificial Intelligence but sometimes I still mess up 🤖 Try again now')
+                            st.write(f'Apologies, I am an Artificial Intelligence but sometimes '
+                                     f'I still mess up 🤖 Try again now')
                     else:
                         filtered_df = eval(answer)
                         st.write("Filtered Data:")
                         st.dataframe(filtered_df)
-                        st.write('At the moment this App only supports creating and sharing Google Slides for employee data')
+                        st.write(f'At the moment this App only supports creating and sharing '
+                                 f'Google Slides for employee data')
 
             # Perform filter by Age, Occupation and Country
             elif option == 'Filter by Other Parameters':
@@ -247,12 +256,14 @@ def main():
                     # Occupation selectbox
                     occupation_options = st.multiselect(
                         'Select profession/s',
-                        ['Data Analyst', 'Data Scientist', 'Software Engineer', 'Developer', 'Accountant', 'Executive', 'Intern'],
+                        ['Data Analyst', 'Data Scientist', 'Software Engineer', 'Developer',
+                         'Accountant', 'Executive', 'Intern'],
                         ['Data Analyst', 'Software Engineer'])
                     # Country selectbox
                     country_options = st.multiselect(
                         'Select country',
-                        ['France', 'Spain', 'Switzerland', 'USA', 'UK', 'Germany', 'Italy','India', 'Netherlands', 'Austria'],
+                        ['France', 'Spain', 'Switzerland', 'USA', 'UK', 'Germany', 'Italy', 'India',
+                         'Netherlands', 'Austria'],
                         ['UK', 'Germany', 'Italy'])
                     # Perform df query based on all previous specifications
                     filtered_df = df[(df['Age'] >= values[0]) & (df['Age'] <= values[1])
