@@ -117,7 +117,7 @@ def share_slide_copies(dataframe, share_email):
                       'https://www.googleapis.com/auth/drive.file',
                       'https://www.googleapis.com/auth/presentations']
 
-            source_slide_id = '190x1G-7DH6zaWEJjTI49sdoJ9ZVr_tyxW05QB_2W-SY'  #   ID of the Google Slides template
+            source_slide_id = '190x1G-7DH6zaWEJjTI49sdoJ9ZVr_tyxW05QB_2W-SY' # ID of the Google Slides template
 
             # Build the credentials and Sheets service
             credentials = service_account.Credentials.from_service_account_file(credentials_path, scopes=scopes)
