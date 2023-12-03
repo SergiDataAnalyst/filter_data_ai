@@ -110,7 +110,7 @@ def share_slide_copies(dataframe, share_email):
         # Iterates over the filtered df results
         for i in range(len(dataframe)):
             # Set the path to your service account credentials JSON file
-            credentials_path = 'C:/Users/sergi/Downloads/roche2023.json'
+            credentials_path = 'C:/Users/sergi/Downloads/google_cloud_service_account.json'
 
             # Necessary authorizations to access the Google Slides template file, create copies and share them
             scopes = ['https://www.googleapis.com/auth/drive',
